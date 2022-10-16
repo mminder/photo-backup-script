@@ -22,7 +22,17 @@ export async function importer(importImagesPath: string, mainImagesPath: string,
             // copy file
             const srcImg = images[0];
             const relativeSrcPath = path.relative(importImagesPath, srcImg);
-            const dstPath = path.join(mainImagesPath, relativeSrcPath);
+            let dstPath = path.join(mainImagesPath, relativeSrcPath);
+
+            // suffix dest if file by that name already exists
+            let iterator = 2;
+            while (fs.existsSync(dstPath)) {
+                const fileName = path.basename(dstPath);
+                const fileNameParts = fileName.split('.');
+                const newFilename = fileNameParts[0] + '-' + iterator + fileNameParts[1];
+                dstPath = path.join(path.dirname(dstPath), newFilename);
+                iterator++;
+            }
 
             if (!dryRun) {
                 console.log(`copy ${srcImg} to ${dstPath}`);
