@@ -6,5 +6,5 @@ NodeJS, Typescript
 
 ## usage
 ```
-node indes.js -s ./testFolder/import -d ./testFolder/mainImages -dry=true
+node index.js -s ./testFolder/import -d ./testFolder/mainImages -dry=true
 ```
