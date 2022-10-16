@@ -18,7 +18,7 @@ const argv = yargs(hideBin(process.argv))
         type: 'string'
     })
     .option('dry', {
-        demandOption: false,
+        demandOption: true,
         describe: 'dry run',
         type: 'boolean'
     })
