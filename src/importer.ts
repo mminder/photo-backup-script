@@ -1,31 +1,18 @@
 import path from "path";
 import fs from "fs";
-import {detectClashes, findDuplicates, hashImageFolder} from "./hashUtil";
+import {detectClashes, hashImageFolder, ImageHashMap} from "./hashUtil";
 
 export async function importer(importImagesPath: string, mainImagesPath: string, dryRun: boolean) {
     const mainFolderImageHashMap = await hashImageFolder(mainImagesPath);
     const importImagesHashMap = await hashImageFolder(importImagesPath);
 
-    const clashes = detectClashes(mainFolderImageHashMap, importImagesHashMap);
+    warnAboutDestDuplicates(mainFolderImageHashMap);
+    const importImagesHashMapWithoutDuplicate = removeDuplicates(importImagesHashMap);
 
-    const importDuplicates = findDuplicates(importImagesHashMap);
-    const mainDuplicates = findDuplicates(mainFolderImageHashMap);
-
-    if (Object.keys(importDuplicates).length > 0) {
-        // remove duplicates from import
-        Object.keys(importDuplicates).forEach(duplicateHash => {
-            const imagesWithDuplicates = importImagesHashMap[duplicateHash];
-            console.log(`WARN: import src has duplicates. keeping only first image for import: hash '${duplicateHash}' images: \n${imagesWithDuplicates.join('\n')}\n`)
-            importImagesHashMap[duplicateHash] = [imagesWithDuplicates[0]];
-        });
-    }
-
-    Object.entries(mainDuplicates).forEach(([hash, images])=>{
-        console.log(`WARN: import dest has duplicates hash: '${hash}' images:\n${images.join('\n')}\n`);
-    });
+    const clashes = detectClashes(mainFolderImageHashMap, importImagesHashMapWithoutDuplicate);
 
     const ignoredImages: string[] = [];
-    Object.entries(importImagesHashMap).forEach(([hash, images]) => {
+    Object.entries(importImagesHashMapWithoutDuplicate).forEach(([hash, images]) => {
         if (images.length > 1) {
             throw new Error(`hash '${hash}' has multiple images '${images}'`);
         } else if (clashes.some(clash => clash.hash === hash)) {
@@ -48,3 +35,25 @@ export async function importer(importImagesPath: string, mainImagesPath: string,
 
     console.log(`\nsome images were not copied because they were already in dest folder:\n${ignoredImages.join('\n')}\n`);
 }
+
+function removeDuplicates(imageHashMap: ImageHashMap): ImageHashMap {
+    const cleanedMap: ImageHashMap = {};
+
+    Object.entries(imageHashMap).forEach(([hash, images]) => {
+        if (images.length > 1) {
+            console.log(`WARN: import src has duplicates. keeping only first image for import: hash '${hash}' images: \n${images.join('\n')}\n`)
+        }
+        cleanedMap[hash] = [images[0]]
+    });
+
+    return cleanedMap;
+}
+
+function warnAboutDestDuplicates(mainFolderImageHashMap: ImageHashMap) {
+    Object.entries(mainFolderImageHashMap).forEach(([hash, images]) => {
+        if (images.length > 1) {
+            console.log(`WARN: import dest has duplicates hash: '${hash}' images:\n${images.join('\n')}\n`);
+        }
+    });
+}
+

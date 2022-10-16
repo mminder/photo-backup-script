@@ -2,6 +2,7 @@
 import yargs from 'yargs';
 // @ts-ignore
 import {hideBin} from 'yargs/helpers';
+const {importer} = require('./importer');
 
 const argv = yargs(hideBin(process.argv))
     .option('s', {
@@ -22,7 +23,5 @@ const argv = yargs(hideBin(process.argv))
         type: 'boolean'
     })
     .argv;
-
-const {importer} = require('./importer');
 
 void importer(argv.s, argv.d, argv.dry);

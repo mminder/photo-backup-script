@@ -68,15 +68,5 @@ async function hashImage(filePath: string): Promise<string> {
     return blockhash.bmvbhash(image, 12);
 }
 
-export function findDuplicates(imageHashMap: ImageHashMap): ImageHashMap {
-    const duplicates: ImageHashMap = {};
-    Object.entries(imageHashMap).forEach(([hash, images]) => {
-        if (images.length > 1) {
-            duplicates[hash] = images;
-        }
-    });
-
-    return duplicates;
-}
 
 
