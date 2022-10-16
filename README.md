@@ -3,3 +3,8 @@ NodeJs Script to backup photos from an import folder to an existing directory re
 
 ## tech
 NodeJS, Typescript
+
+## usage
+```
+node indes.js -s ./testFolder/import -d ./testFolder/mainImages -dry=true
+```
