@@ -13,35 +13,36 @@ export async function importer(importImagesPath: string, mainImagesPath: string,
 
     const ignoredImages: string[] = [];
     Object.entries(importImagesHashMapWithoutDuplicate).forEach(([hash, images]) => {
-        if (images.length > 1) {
-            throw new Error(`hash '${hash}' has multiple images '${images}'`);
-        } else if (clashes.some(clash => clash.hash === hash)) {
-            // do not import, is clash and already exists in main
-            ignoredImages.push(images[0]);
-        } else {
-            // copy file
-            const srcImg = images[0];
-            const relativeSrcPath = path.relative(importImagesPath, srcImg);
-            let dstPath = path.join(mainImagesPath, relativeSrcPath);
-
-            // suffix dest if file by that name already exists
-            let iterator = 2;
-            while (fs.existsSync(dstPath)) {
-                const fileName = path.basename(dstPath);
-                const fileNameParts = fileName.split('.');
-                const newFilename = fileNameParts[0] + '-' + iterator + fileNameParts[1];
-                dstPath = path.join(path.dirname(dstPath), newFilename);
-                iterator++;
-            }
-
-            if (!dryRun) {
-                console.log(`copy ${srcImg} to ${dstPath}`);
-                fs.copyFileSync(srcImg, dstPath);
+            if (images.length > 1) {
+                throw new Error(`hash '${hash}' has multiple images '${images}'`);
+            } else if (clashes.some(clash => clash.hash === hash)) {
+                // do not import, is clash and already exists in main
+                ignoredImages.push(images[0]);
             } else {
-                console.log(`DRY RUN copy ${srcImg} to ${dstPath}`);
+                // copy file
+                const srcImg = images[0];
+                const relativeSrcPath = path.relative(importImagesPath, srcImg);
+                let dstPath = path.join(mainImagesPath, relativeSrcPath);
+
+                // suffix dest if file by that name already exists
+                let iterator = 2;
+                while (fs.existsSync(dstPath)) {
+                    const fileName = path.basename(dstPath);
+                    const fileNameParts = fileName.split('.');
+                    const newFilename = fileNameParts[0] + '-' + iterator + fileNameParts[1];
+                    dstPath = path.join(path.dirname(dstPath), newFilename);
+                    iterator++;
+                }
+
+                if (!dryRun) {
+                    console.log(`copy ${srcImg} to ${dstPath}`);
+                    fs.cpSync(srcImg, dstPath);
+                } else {
+                    console.log(`DRY RUN copy ${srcImg} to ${dstPath}`);
+                }
             }
         }
-    });
+    );
 
     console.log(`\nsome images were not copied because they were already in dest folder:\n${ignoredImages.join('\n')}\n`);
 }
