@@ -3,6 +3,7 @@ import fs from "fs";
 import {detectClashes, FolderHashResult, hashImageFolder, ImageHashMap} from "./hashUtil";
 
 export async function importer(importImagesPath: string, mainImagesPath: string, dryRun: boolean) {
+    console.log('hashing images...');
     const importImagesFolderHashResult: FolderHashResult = await hashImageFolder(importImagesPath);
     const mainFolderHashResult: FolderHashResult = await hashImageFolder(mainImagesPath);
 
@@ -11,6 +12,7 @@ export async function importer(importImagesPath: string, mainImagesPath: string,
 
     const clashes = detectClashes(mainFolderHashResult.imageHashMap, importImagesHashMapWithoutDuplicate);
 
+    console.log('copying images...');
     const ignoredImages: string[] = [];
     Object.entries(importImagesHashMapWithoutDuplicate).forEach(([hash, images]) => {
             if (images.length > 1) {
@@ -35,8 +37,8 @@ export async function importer(importImagesPath: string, mainImagesPath: string,
                 }
 
                 if (!dryRun) {
-                    console.log(`copy ${srcImg} to ${dstPath}`);
-                    fs.cpSync(srcImg, dstPath);
+                    // console.log(`copy ${srcImg} to ${dstPath}`);
+                    fs.cpSync(srcImg, dstPath, {preserveTimestamps: true});
                 } else {
                     console.log(`DRY RUN copy ${srcImg} to ${dstPath}`);
                 }
@@ -44,7 +46,9 @@ export async function importer(importImagesPath: string, mainImagesPath: string,
         }
     );
 
-    console.log(`\nsome images were not copied because they were already in dest folder:\n${ignoredImages.join('\n')}\n`);
+    if (ignoredImages.length !== 0) {
+        console.log(`\nsome images were not copied because they were already in dest folder:\n${ignoredImages.join('\n')}\n`);
+    }
 }
 
 function removeDuplicates(imageHashMap: ImageHashMap): ImageHashMap {
