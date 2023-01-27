@@ -1,15 +1,15 @@
 import path from "path";
 import fs from "fs";
-import {detectClashes, hashImageFolder, ImageHashMap} from "./hashUtil";
+import {detectClashes, FolderHashResult, hashImageFolder, ImageHashMap} from "./hashUtil";
 
 export async function importer(importImagesPath: string, mainImagesPath: string, dryRun: boolean) {
-    const mainFolderImageHashMap = await hashImageFolder(mainImagesPath);
-    const importImagesHashMap = await hashImageFolder(importImagesPath);
+    const importImagesFolderHashResult: FolderHashResult = await hashImageFolder(importImagesPath);
+    const mainFolderHashResult: FolderHashResult = await hashImageFolder(mainImagesPath);
 
-    warnAboutDestDuplicates(mainFolderImageHashMap);
-    const importImagesHashMapWithoutDuplicate = removeDuplicates(importImagesHashMap);
+    warnAboutDestDuplicates(mainFolderHashResult.imageHashMap);
+    const importImagesHashMapWithoutDuplicate = removeDuplicates(importImagesFolderHashResult.imageHashMap);
 
-    const clashes = detectClashes(mainFolderImageHashMap, importImagesHashMapWithoutDuplicate);
+    const clashes = detectClashes(mainFolderHashResult.imageHashMap, importImagesHashMapWithoutDuplicate);
 
     const ignoredImages: string[] = [];
     Object.entries(importImagesHashMapWithoutDuplicate).forEach(([hash, images]) => {
